@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>خريطة مشروع</title>
+<link rel="manifest" href="manifest.json" />
+<style>
+  html, body { height:100%; margin:0; font-family:sans-serif; }
+  #map { position:absolute; top:0; bottom:0; right:0; left:0; }
+  .reserve-btn { margin-top:6px; display:block; width:100%; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css">
+</head>
+<body>
+<div id="map"></div>
+<script>
+// ---- CONFIG ----
+const SHEET_API = "https://script.google.com/macros/s/AKfycbzsAuh159Brk_SHW1gZiBeoArL_eqHMPAPtIGve061tMutT1WVcCGisjLmrPARQs5vOMQ/exec";
+const AUTHORIZED_EMAIL = "Maisahmadabdullah@gmail.com";
+// ---------------
+
+const map = L.map('map').setView([24.45,54.4], 10);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { attribution:"Esri Satellite"}).addTo(map);
+const cluster = L.markerClusterGroup().addTo(map);
+
+async function fetchData() {
+  const res = await fetch(SHEET_API+"?action=get");
+  const data = await res.json(); 
+  data.forEach(addMarker);
+}
+function markerColor(status){return status==="محجوزة"?"red":"green";}
+function addMarker(item){
+  const marker = L.marker([item.lat, item.lng],
+     {icon:L.AwesomeMarkers.icon({markerColor:markerColor(item.status), prefix:'fa',icon:'info'})});
+  let content = `<b>${item.name}</b><br>${item.info}<br>الحالة: <b>${item.status}</b>`;
+  if(item.status!=="محجوزة" && googleEmail===AUTHORIZED_EMAIL){
+     content += `<button class='reserve-btn' onclick="reserve('${item.name}')">تم الحجز</button>`;
+  }
+  marker.bindPopup(content);
+  cluster.addLayer(marker);
+}
+
+async function reserve(name){
+  await fetch(SHEET_API, {method:"POST",body:JSON.stringify({action:"reserve",name})});
+  alert("✅ تم الحجز بنجاح");
+  location.reload();
+}
+
+let googleEmail=null;
+function initAuth(){
+  google.accounts.id.initialize({
+    client_id:"YOUR_GOOGLE_OAUTH_CLIENT_ID",
+    callback:function(response){
+      google.accounts.id.disableAutoSelect();
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      googleEmail = payload.email;
+      fetchData();
+    }
+  });
+  google.accounts.id.prompt();
+}
+</script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="initAuth()"></script>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
