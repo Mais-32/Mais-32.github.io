@@ -22,7 +22,7 @@
 <div id="map"></div>
 <script>
 // ---- CONFIG ----
-const SHEET_API = "https://script.google.com/macros/s/AKfycbzsAuh159Brk_SHW1gZiBeoArL_eqHMPAPtIGve061tMutT1WVcCGisjLmrPARQs5vOMQ/exec";
+const SHEET_API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLg0ynDvMhlS1t4_BCrxDWXrSKArqwngwb3mByswDgMvKxiuNRytd8lcky_mbCqFfPbsl-eoOQ0o6IeZoGrGW1zVQVsAO-wwa9WM0TE-X7V-5Hndlm-X_1038NoZfg2knqnPjZN5CSUup1NBMwaZWC7RbD4dOKZL2HlrDvKYMBiT4jlrSd6sVH3r0s4pf99wQyanHpjXg6rwbp4VbnTGncCI0dXzRZhhkfZ2aUnS5NY-pH6kWliWcM5Cm7t8SFHkB0vUp3025NbDHUFJcpnawLFUEFkVOQ9Zepebgpza&lib=Mwifd6sGf2GmZ5_GrPPnm2YkiLWDA_tMB";
 const AUTHORIZED_EMAIL = "Maisahmadabdullah@gmail.com";
 // ---------------
 
@@ -32,7 +32,7 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 const cluster = L.markerClusterGroup().addTo(map);
 
 async function fetchData() {
-  const res = await fetch(SHEET_API+"?action=get");
+const res = await fetch(SHEET_API_URL + "?action=get");
   const data = await res.json(); 
   data.forEach(addMarker);
 }
@@ -49,7 +49,7 @@ function addMarker(item){
 }
 
 async function reserve(name){
-  await fetch(SHEET_API, {method:"POST",body:JSON.stringify({action:"reserve",name})});
+await fetch(SHEET_API, {method:"POST",body:JSON.stringify({action:"reserve",name})});
   alert("✅ تم الحجز بنجاح");
   location.reload();
 }
